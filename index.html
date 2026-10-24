@@ -1,0 +1,85 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>JavaScript Learning Runner</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    pre {
+      background: #f1f3f5;
+      padding: 16px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    button { padding: 8px 20px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>JavaScript Learning Runner</h1>
+
+  <input type="file" id="file" accept=".js">
+  <button id="run" disabled>実行</button>
+
+  <h2>ソースコード</h2>
+  <pre id="source">ファイルを選択してください</pre>
+
+  <h2>実行結果</h2>
+  <pre id="output"></pre>
+
+  <script>
+    const fileInput = document.getElementById("file");
+    const runButton = document.getElementById("run");
+    const source = document.getElementById("source");
+    const output = document.getElementById("output");
+
+    let code = "";
+
+    // ファイルが選択されたとき
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      code = await file.text();
+      source.textContent = code;
+      runButton.disabled = false;
+    });
+
+    // 実行ボタンが押されたとき
+    runButton.addEventListener("click", () => {
+      output.textContent = "";
+
+      const print = (...args) => {
+        const text = args.map(value => {
+          if (typeof value === "string") return value;
+          try {
+            return JSON.stringify(value, null, 2) ?? String(value);
+          } catch {
+            return String(value);
+          }
+        }).join(" ");
+
+        output.textContent += text + "\n";
+      };
+
+      const customConsole = {
+        log: print,
+        warn: print,
+        error: print
+      };
+
+      try {
+        new Function("console", code)(customConsole);
+      } catch (error) {
+        print(error.stack || error.message);
+      }
+    });
+  </script>
+</body>
+</html>
